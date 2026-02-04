@@ -24,7 +24,6 @@ typedef struct {
 // Declaramos las firmas de las funciones antes del main para que el compilador sepa que existen
 // y qué tipos de datos reciben/devuelven, permitiendo organizarlas en cualquier orden.
 void registroPrincipalDelJugador(struct Jugador *j);
-// (Se eliminó el prototipo de mostrarEstadoDelNucleo)
 int procesarRespuesta(int respuestaUsuario, int respuestaCorrecta, int *llaves, int *vidas);
 void limpiarBuffer();
 void mostrarInterfazDeJuego(int vidas, int llaves, int numeroPregunta);
@@ -129,7 +128,7 @@ void mostrarInterfazDeJuego(int vidas, int llaves, int numeroPregunta) {
     if (llaves == 0) {
         printf("[Vacio]");
     } else {
-        // Bucle para dibujar una llave ASCII por cada punto obtenido
+        // Bucle para dibujar una llave por cada punto obtenido
         for (int i = 0; i < llaves; i++) {
             printf(" ((0)=====¶) ");
         }
@@ -141,7 +140,7 @@ void mostrarInterfazDeJuego(int vidas, int llaves, int numeroPregunta) {
 // Función void que imprime el arte ASCII de derrota
 void mostrarGameOver() {
     printf("\n\n");
-    // Mensaje GAME OVER legible hecho con puntos
+    // Mensaje GAME OVER 
     printf("  ....     .       .   .    .....       ...    .       .    .....   ....   \n");
     printf(" .        . .      .. ..    .          .   .    .     .     .       .   .  \n");
     printf(" .  ..   .....     . . .    .....      .   .    .     .     .....   ....   \n");
@@ -151,7 +150,7 @@ void mostrarGameOver() {
 
 }
 
-// Función void que imprime el arte ASCII de victoria
+// Función void que imprime victoria
 void mostrarWin() {
     printf("\n\n");
     // Mensaje WIN legible hecho con puntos
@@ -186,7 +185,7 @@ int main() {
     struct Jugador usuario;
     int opcionReiniciar = 0;
 
-    // Arte ASCII decorativo de inicio
+    // Inicio
     printf("-------------------------------------------------------------------------\n");
     printf(" .---. .      .---. .---. .---. .---. .---.      .---. .---. .---. .---. \n");
     printf(" |   | |      |   | |       |   |   | |   |  -   | | | |   |     /  |      \n");
@@ -227,9 +226,8 @@ int main() {
         int respuesta = 0;
         int victoria = 0; // Bandera para saber si ganó al final
 
-        // Matriz tridimensional [2][2][2] (Cubo de 2x2x2). 
-        // Aunque no se muestra visualmente en esta versión, se sigue calculando internamente
-        // para representar el "núcleo de energía" reparándose.
+        // Matriz tridimensional [2][2][2]. 
+        // Representa el "núcleo de energía" reparándose.
         int nucleoEnergia[2][2][2] = {
             { {0, 0}, {0, 0} }, 
             { {0, 0}, {0, 0} }
@@ -275,8 +273,6 @@ int main() {
                 int col = i % 2;
                 nucleoEnergia[capa][fila][col] = 1; // Marca la celda como "reparada" (1)
             }
-
-            // SE ELIMINÓ LA LLAMADA A mostrarEstadoDelNucleo AQUÍ
         }
 
         // --- CONDICIONALES DE FINAL DE JUEGO ---
