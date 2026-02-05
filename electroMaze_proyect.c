@@ -24,6 +24,7 @@ typedef struct {
 // Declaramos las firmas de las funciones antes del main para que el compilador sepa que existen
 // y qué tipos de datos reciben/devuelven, permitiendo organizarlas en cualquier orden.
 void registroPrincipalDelJugador(struct Jugador *j);
+// (Se eliminó el prototipo de mostrarEstadoDelNucleo)
 int procesarRespuesta(int respuestaUsuario, int respuestaCorrecta, int *llaves, int *vidas);
 void limpiarBuffer();
 void mostrarInterfazDeJuego(int vidas, int llaves, int numeroPregunta);
@@ -35,6 +36,7 @@ void mostrarWin();   // Nombre cambiado para reflejar que solo dice WIN
 // permite modificar directamente la variable 'usuario' creada en el main, no una copia.
 void registroPrincipalDelJugador(struct Jugador *j){
     int opcionRol;
+    int validacionEdad;
 
     printf("==----- REGISTRO DEL AVENTURERO -----==\n");
 
@@ -48,12 +50,18 @@ void registroPrincipalDelJugador(struct Jugador *j){
     // Bucle do-while para validar que la edad sea lógica (mayor que 0)
     do {
         printf("Introduce tu edad: ");
-        scanf("%d", &j->edadDelJugador);
+        validacionEdad = scanf("%d", &j->edadDelJugador);
         limpiarBuffer(); // Limpieza preventiva del buffer
         
-        if (j->edadDelJugador <= 0) {
-            printf(">> Error: EDAD NO VALIDA -- Ingrese nuevamente su edad.\n");
+        if (validacionEdad == 0) {
+            // Entra aquí si escribiste letras (ej: "veinte")
+            printf(">> Error: FORMATO INVALIDO. Debe ingresar solo numeros enteros.\n");
+            j->edadDelJugador = -1; // Forzamos repetir el bucle
+        } else if (j->edadDelJugador <= 0) {
+            // Entra aquí si es número pero es 0 o negativo
+            printf(">> Error: EDAD NO VALIDA. Debe ser mayor a 0.\n");
         }
+
     } while (j->edadDelJugador <= 0);
 
     // Menú simple para elegir un rol temático
@@ -96,8 +104,6 @@ void limpiarBuffer() {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-// (Se eliminó la función mostrarEstadoDelNucleo para quitar la interfaz de capas)
-
 // Función puramente visual (Interfaz de Usuario - HUD)
 // Muestra el progreso actual sin modificar datos, por eso recibe las variables por valor (copias).
 void mostrarInterfazDeJuego(int vidas, int llaves, int numeroPregunta) {
@@ -136,11 +142,11 @@ void mostrarInterfazDeJuego(int vidas, int llaves, int numeroPregunta) {
     printf("\n=======================================================\n");
 }
 
-// --- PANTALLAS DE FINAL DE JUEGO (ASCII ART MODIFICADO) ---
-// Función void que imprime el arte ASCII de derrota
+// --- PANTALLAS DE FINAL DE JUEGO  ---
+// Función void que imprime derrota
 void mostrarGameOver() {
     printf("\n\n");
-    // Mensaje GAME OVER 
+    // Mensaje GAME OVER
     printf("  ....     .       .   .    .....       ...    .       .    .....   ....   \n");
     printf(" .        . .      .. ..    .          .   .    .     .     .       .   .  \n");
     printf(" .  ..   .....     . . .    .....      .   .    .     .     .....   ....   \n");
@@ -153,7 +159,7 @@ void mostrarGameOver() {
 // Función void que imprime victoria
 void mostrarWin() {
     printf("\n\n");
-    // Mensaje WIN legible hecho con puntos
+    // Mensaje WIN 
     printf(" .         .   .....   .    . \n");
     printf(" .    .    .     .     ..   . \n");
     printf(" .   . .   .     .     . .  . \n");
@@ -178,14 +184,14 @@ int procesarRespuesta(int respuestaUsuario, int respuestaCorrecta, int *llaves, 
 }
 
 int main() {
-    // Configura la página de códigos de la consola a UTF-8 para mostrar tildes y caracteres especiales correctamente
+
+    // Configura la consola para mostrar tildes y caracteres especiales
     system("chcp 65001"); 
     
-    // Instancia de la estructura Jugador (aquí se guardarán los datos del usuario)
     struct Jugador usuario;
     int opcionReiniciar = 0;
 
-    // Inicio
+    // --- ARTE ASCII Y BIENVENIDA ---
     printf("-------------------------------------------------------------------------\n");
     printf(" .---. .      .---. .---. .---. .---. .---.      .---. .---. .---. .---. \n");
     printf(" |   | |      |   | |       |   |   | |   |  -   | | | |   |     /  |      \n");
@@ -193,11 +199,11 @@ int main() {
     printf(" |   | |      |   | |       |   |   \\ |   |      |   | |   |  /     |      \n");
     printf(" '---' '---'  '---' '---'   '   '    ''---'      '   ' '   ' '---' '---' \n");
     printf("-------------------------------------------------------------------------\n");
-    // Llama a la función de registro pasando la DIRECCIÓN de memoria (&) de la variable usuario
+    
+    // Registro del jugador
     registroPrincipalDelJugador(&usuario);
 
     // --- INICIALIZACIÓN DEL BANCO DE PREGUNTAS ---
-    // Se inicializa un array de 10 estructuras 'Pregunta' con los datos precargados.
     Pregunta bancoPreguntas[10] = {
         {"1. ¿Cual es la unidad de resistencia electrica?\n   1) Ohm\n   2) Voltio\n   3) Amperio", 1, "RETROALIMENTACION: El Ohm es la unidad oficial del SI para medir resistencia."},
         {"2. ¿Que ley establece que V = I * R?\n   1) Ley de Watt\n   2) Ley de Ohm\n   3) Ley de Kirchhoff", 2, "RETROALIMENTACION: La Ley de Ohm relaciona voltaje, corriente y resistencia."},
@@ -217,68 +223,82 @@ int main() {
     printf("Peligro: Si fallas 5 veces, PIERDES.\n");
     printf("-------------------------------------------\n");
 
-    // Bucle principal del juego (Game Loop).
-    // Usamos 'do-while' para garantizar que se ejecute al menos una vez y permitir el reinicio.
+    // --- BUCLE PRINCIPAL DEL JUEGO (GAME LOOP) ---
     do {
-        // Reinicio de variables de estado para cada nueva partida
+        // Reinicio de variables para cada partida nueva
         int llaves = 0;
         int vidas = 5;
         int respuesta = 0;
-        int victoria = 0; // Bandera para saber si ganó al final
+        int victoria = 0; 
+        int entradaValida = 0; // Bandera para controlar la entrada de datos (1-3)
 
-        // Matriz tridimensional [2][2][2]. 
-        // Representa el "núcleo de energía" reparándose.
+        // Matriz decorativa del núcleo
         int nucleoEnergia[2][2][2] = {
             { {0, 0}, {0, 0} }, 
             { {0, 0}, {0, 0} }
         };
 
         printf("\n>>> INICIANDO SISTEMA DE PRUEBAS <<<\n");
-        getchar(); // Pausa táctica esperando un Enter del usuario
+        getchar(); // Pausa
 
-        // Iteración por las 10 preguntas del banco
+        // Iteración por las 10 preguntas
         for (int i = 0; i < 10; i++) {
             
-            // Verificación constante de "Game Over"
-            // Si las vidas llegan a 0, rompemos el bucle for inmediatamente con 'break'
+            // Si las vidas llegan a 0, termina el juego inmediatamente
             if (vidas <= 0) {
                 break; 
             }
 
-            // Mostramos el HUD actualizado
             mostrarInterfazDeJuego(vidas, llaves, i + 1);
 
-            // Imprimimos la pregunta actual accediendo al array de estructuras
-            printf("%s\n", bancoPreguntas[i].textoPregunta); 
-            printf("Tu respuesta: ");
-            scanf("%d", &respuesta);
-            limpiarBuffer(); // Importante limpiar tras cada lectura numérica
+            respuesta = 0; // [CORRECCIÓN] Reiniciamos la respuesta para que no salga el recordatorio por error
 
-            // Llamada a la lógica de validación. Pasamos la dirección (&) de llaves y vidas
+            // Bucle de validación: No avanza hasta que el usuario ponga 1, 2 o 3
+            do {
+                entradaValida = 0; 
+                
+                // Muestra el enunciado (y el recordatorio si ya falló una vez)
+                if (respuesta != 0) { 
+                    printf("\n[RECORDATORIO] Opcion invalida. Intente de nuevo.\n");
+                    printf("%s\n", bancoPreguntas[i].textoPregunta);
+                } else {
+                    printf("%s\n", bancoPreguntas[i].textoPregunta); 
+                }
+
+                printf("Tu respuesta: ");
+                
+                // Verifica que sea número Y que esté entre 1 y 3
+                if (scanf("%d", &respuesta) == 1 && (respuesta >= 1 && respuesta <= 3)) {
+                      entradaValida = 1; // Entrada correcta
+                } else {
+                      entradaValida = 0; // Entrada incorrecta
+                      respuesta = -1;    // Valor centinela para activar el recordatorio
+                }
+                limpiarBuffer(); 
+
+            } while (entradaValida == 0);
+
+            // Llamada a la lógica de evaluación (ahora seguro de que la respuesta es válida)
             int exito = procesarRespuesta(respuesta, bancoPreguntas[i].respuestaCorrecta, &llaves, &vidas);
 
-            // Muestra la retroalimentación educativa independientemente de si acertó o falló
+            // Muestra la retroalimentación
             printf("-------------------------------------------------------\n");
             printf("%s\n", bancoPreguntas[i].retroalimentacion);
             printf("-------------------------------------------------------\n");
             printf("Presiona ENTER para continuar...");
             getchar(); 
 
-            // Si la respuesta fue correcta (exito == 1), actualizamos el "núcleo" interno
+            // Si acertó, "repara" una parte del núcleo (visual)
             if (exito) {
-                // Algoritmo para mapear un índice lineal 'i' (0-9) a coordenadas 3D (x,y,z)
-                // Esto llena el cubo de energía de forma secuencial.
                 int capa = (i / 4) % 2; 
                 int fila = (i / 2) % 2;
                 int col = i % 2;
-                nucleoEnergia[capa][fila][col] = 1; // Marca la celda como "reparada" (1)
+                nucleoEnergia[capa][fila][col] = 1; 
             }
         }
 
-        // --- CONDICIONALES DE FINAL DE JUEGO ---
-        // Al salir del bucle (ya sea por terminar las preguntas o por game over), evaluamos el resultado.
+        // --- FINAL DEL JUEGO ---
         if (llaves >= 7) {
-            // Condición de victoria: 7 o más aciertos
             mostrarWin(); 
             printf("\n*****************\n");
             printf(" ¡FELICIDADES %s! HAS GANADO EL JUEGO.\n", usuario.nombreDelJUgador);
@@ -286,18 +306,15 @@ int main() {
             printf("*****************\n");
             victoria = 1;
         } else {
-            // Condición de derrota
             mostrarGameOver(); 
             printf("\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
-            printf(" GAME OVER. Te has quedado sin vidas .\n");
-            
+            printf(" GAME OVER. Te has quedado sin vidas.\n");
             printf(" Estado final:\n");
-            mostrarInterfazDeJuego(vidas, llaves, 11); // El 11 indica al HUD que es el final
-
+            mostrarInterfazDeJuego(vidas, llaves, 11); 
             printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
         }
 
-        // Pregunta para reiniciar el ciclo do-while
+        // Opción de reiniciar
         printf("\n¿Deseas volver a intentar salvar el circuito? (1 = Si, 0 = No): ");
         scanf("%d", &opcionReiniciar);
         limpiarBuffer();
@@ -306,9 +323,11 @@ int main() {
             printf("\nReinicando sistemas...\n\n");
         }
 
-    } while (opcionReiniciar == 1); // Si el usuario ingresa 1, el bucle se repite
+    } while (opcionReiniciar == 1); 
 
     printf("\nGracias por jugar. Programa finalizado.\n");
 
-    return 0; // Retorno estándar de éxito al sistema operativo
+    return 0;
 }
+       
+           
